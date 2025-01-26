@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application de Suivi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('LOGO.png') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+        }
+
+        .container {
+            max-width: 90%;
+            margin: 2rem auto;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        th, td {
+            border: 1px solid white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        button {
+            padding: 0.8rem;
+            background-color: #0078D4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        .back-button {
+            margin-top: 1rem;
+            background-color: #ff4c4c;
+        }
+
+        .back-button:hover {
+            background-color: #e60000;
+        }
+
+        .validate-button {
+            margin-top: 1rem;
+            background-color: #28a745;
+        }
+
+        .validate-button:hover {
+            background-color: #218838;
+        }
+
+        .delete-button {
+            margin-top: 1rem;
+            background-color: #dc3545;
+        }
+
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Section de Connexion -->
+    <div id="login-section" class="container">
+        <h1>Connexion</h1>
+        <input type="text" id="username" placeholder="Identifiant" required>
+        <input type="password" id="password" placeholder="Mot de passe" required>
+        <button onclick="login()">Se connecter</button>
+        <p id="error-message" class="hidden" style="color: red;">Identifiant ou mot de passe incorrect</p>
+    </div>
+
+    <!-- Section Employé -->
+    <div id="employee-section" class="container hidden">
+        <h2>Tableau Employé</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Semaine et Date</th>
+                    <th>Code du Site</th>
+                    <th>Tâches Accomplies</th>
+                    <th>Conducteur</th>
+                    <th>Commentaire</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span id="employee-date"></span></td>
+                    <td><input type="text" id="site-code" placeholder="Code du site"></td>
+                    <td>
+                        <label><input type="checkbox" id="task-4g" value="4G"> 4G</label>
+                        <label><input type="checkbox" id="task-5g" value="5G"> 5G</label>
+                        <label><input type="checkbox" id="task-ran" value="RAN BAILLEUR"> RAN BAILLEUR</label>
+                        <label><input type="checkbox" id="task-newsite" value="NEW SITE"> NEW SITE</label>
+                        <label><input type="checkbox" id="task-lr" value="LR"> LR</label>
+                        <label><input type="checkbox" id="task-swap" value="SWAP"> SWAP</label>
+                    </td>
+                    <td><input type="text" id="driver-name" placeholder="Nom du conducteur"></td>
+                    <td><input type="text" id="comment" placeholder="Commentaire"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="validate-button" onclick="validateEmployeeData()">Valider</button>
+        <button class="back-button" onclick="goBack()">Retour</button>
+    </div>
+
+    <!-- Section Administrateur -->
+    <div id="admin-section" class="container hidden">
+        <h2>Tableau Administrateur</h2>
+        <table id="admin-table">
+            <thead>
+                <tr>
+                    <th>Identifiant</th>
+                    <th>Semaine et Date</th>
+                    <th>Code du Site</th>
+                    <th>Tâches Accomplies</th>
+                    <th>Conducteur</th>
+                    <th>Commentaire</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Les données dynamiques des employés seront ajoutées ici -->
+            </tbody>
+        </table>
+        <button onclick="exportTableToExcel('admin-table', 'recapitulatif_missions')">Télécharger en Excel</button>
+        <button class="delete-button" onclick="deleteAllData()">Supprimer les données</button>
+        <button class="back-button" onclick="goBack()">Retour</button>
+    </div>
+
+    <script>
+        const adminTableBody = document.querySelector('#admin-table tbody');
+        let currentEmployee = null;
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const employees = [
+                { username: "Nahdi", password: "Mohsen" },
+                { username: "Naceur", password: "Mohamed" },
+                { username: "Agrebaoui", password: "Mohamed" },
+                { username: "Houidi", password: "Bahri" }
+            ];
+
+            const admin = { username: "Bens", password: "Kkbhrec12@@" };
+
+            const employee = employees.find(e => e.username === username && e.password === password);
+
+            if (employee) {
+                currentEmployee = employee.username;
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('employee-section').classList.remove('hidden');
+            } else if (username === admin.username && password === admin.password) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                loadSavedData();
+            } else {
+                document.getElementById('error-message').classList.remove('hidden');
+            }
+        }
+
+        function goBack() {
+            document.getElementById('employee-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+
+        function validateEmployeeData() {
+            const date = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const siteCode = document.getElementById('site-code').value;
+            const tasks = [
+                document.getElementById('task-4g').checked ? '4G' : '',
+                document.getElementById('task-5g').checked ? '5G' : '',
+                document.getElementById('task-ran').checked ? 'RAN BAILLEUR' : '',
+                document.getElementById('task-newsite').checked ? 'NEW SITE' : '',
+                document.getElementById('task-lr').checked ? 'LR' : '',
+                document.getElementById('task-swap').checked ? 'SWAP' : ''
+            ].filter(Boolean).join(', ');
+            const driverName = document.getElementById('driver-name').value;
+            const comment = document.getElementById('comment').value;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${currentEmployee}</td>
+                <td>${date}</td>
+                <td>${siteCode}</td>
+                <td>${tasks}</td>
+                <td>${driverName}</td>
+                <td>${comment}</td>
+            `;
+            adminTableBody.appendChild(row);
+
+            saveDataToLocalStorage();
+            alert('Données validées et sauvegardées !');
+        }
+
+        function saveDataToLocalStorage() {
+            const rows = Array.from(adminTableBody.querySelectorAll('tr'));
+            const data = rows.map(row => {
+                const cells = row.querySelectorAll('td');
+                return Array.from(cells).map(cell => cell.textContent);
+            });
+            localStorage.setItem('adminTableData', JSON.stringify(data));
+        }
+
+        function loadSavedData() {
+            const data = JSON.parse(localStorage.getItem('adminTableData')) || [];
+            data.forEach(rowData => {
+                const row = document.createElement('tr');
+                row.innerHTML = rowData.map(cellData => `<td>${cellData}</td>`).join('');
+                adminTableBody.appendChild(row);
+            });
+        }
+
+        function deleteAllData() {
+            if (confirm('Voulez-vous vraiment supprimer toutes les données ?')) {
+                adminTableBody.innerHTML = '';
+                localStorage.removeItem('adminTableData');
+                alert('Toutes les données ont été supprimées !');
+            }
+        }
+
+        function exportTableToExcel(tableID, filename = '') {
+            const table = document.getElementById(tableID);
+            const tableHTML = table.outerHTML.replace(/ /g, '%20');
+            const link = document.createElement('a');
+            link.href = 'data:application/vnd.ms-excel,' + tableHTML;
+            link.download = filename ? filename + '.xls' : 'tableau.xls';
+            link.click();
+        }
+
+        // Charger automatiquement les données lors du démarrage
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('admin-section').classList.contains('hidden')) {
+                loadSavedData();
+            }
+        });
+    </script>
+</body>
+</html>
